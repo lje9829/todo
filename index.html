@@ -300,6 +300,15 @@ footer { margin-top:auto; padding:18px 0 4px; border-top:1px solid var(--line); 
   document.getElementById('cancelClear').addEventListener('click',()=>dialog.close());
   document.getElementById('confirmClear').addEventListener('click',()=>{clearDone();dialog.close();});
   function clearDone() {const week=getWeek();for(let i=0;i<8;i++) week[i]=week[i].filter(t=>!t.done);save();render();}
+  window.addEventListener('storage', event => {
+    if(event.key !== STORAGE_KEY) return;
+    try { data = JSON.parse(event.newValue || '{}') || {}; } catch { data = {}; }
+    render();
+  });
+  window.addEventListener('focus', () => {
+    try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch { data = {}; }
+    render();
+  });
   render();
 })();
 </script>
