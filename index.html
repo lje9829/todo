@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#faf8f4" />
+  <meta name="description" content="하루하루 체크하는 나만의 위클리 플래너" />
+  <title>My Weekly — 위클리 플래너</title>
+  <style>:root { color-scheme: light; --bg:#faf8f4; --card:#fff; --ink:#272823; --muted:#95948e; --line:#e9e7e2; --accent:#99a889; --accent-light:#eef2e9; --pink:#d7a39a; --shadow:0 8px 28px rgba(58,50,35,.035); font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, -apple-system, sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); }
+button,input { font:inherit; }
+button { cursor:pointer; }
+button:focus-visible,input:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.app-shell { max-width:1550px; margin:auto; min-height:100vh; padding:34px clamp(18px,4vw,64px) 20px; display:flex; flex-direction:column; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.brand { display:flex; align-items:center; gap:11px; font-size:13px; font-weight:800; letter-spacing:.18em; }
+.brand-mark { display:grid; place-items:center; width:32px;height:32px;border-radius:12px; color:#fff;background:var(--accent);font-size:22px; font-weight:400; }
+.header-actions { display:flex; gap:9px; flex-wrap:wrap; }
+.quiet-button { border:1px solid var(--line); background:#fff; color:#5b5c54; border-radius:12px; padding:10px 14px; font-size:12px; font-weight:650; }
+.quiet-button:hover { border-color:#c5cfba; background:#f9fcf7; }
+.intro { margin:62px 0 32px; display:flex; align-items:end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+.eyebrow { color:#9aa58e; font-size:11px; font-weight:800; letter-spacing:.23em; margin:0 0 13px; }
+h1 { margin:0; font-size:clamp(30px,3.6vw,49px); line-height:1.15; font-weight:800; letter-spacing:-.055em; }
+.title-dot { color:var(--pink); }
+.subtitle { font-size:14px; color:#8b8b83; margin:13px 0 0; }
+.date-controls { display:flex; align-items:center; gap:12px; padding-bottom:3px; }
+.nav-button { border:1px solid var(--line); background:var(--card); border-radius:11px; width:36px;height:36px; font-size:24px; line-height:1; color:#6e7568; }
+.nav-button:hover { background:var(--accent-light); }
+.week-label { min-width:184px; text-align:center; font-size:14px; font-weight:750; letter-spacing:-.02em; }
+.progress-area { margin-bottom:24px; }
+.progress-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; color:#8c8f83; font-size:10px; letter-spacing:.15em; font-weight:800; }
+.progress-heading strong { color:#6d8061; font-size:12px; letter-spacing:0; }
+.progress-track { background:#eaece5; width:100%; height:6px; border-radius:10px; overflow:hidden; }
+.progress-fill { height:100%; width:0; border-radius:10px; background:var(--accent); transition:width .25s ease; }
+.weekly-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; }
+.day-card { background:var(--card); border:1px solid #edebe7; border-radius:18px; min-height:264px; padding:20px 17px 17px; box-shadow:var(--shadow); display:flex; flex-direction:column; min-width:0; }
+.day-card.today { border-color:#bdc8b3; box-shadow:0 0 0 1px #cbd6c2, var(--shadow); }
+.day-card.memo { background:#fffdf6; border-color:#f0e9d6; }
+.card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:9px; }
+.card-title { display:flex; flex-direction:column; gap:6px; }
+.day-name { font-size:17px; font-weight:800; letter-spacing:-.035em; }
+.day-date { font-size:11px; color:#9a9a93; font-weight:600; }
+.memo .day-date { color:#a8a187; }
+.day-counter { padding:5px 8px; min-width:28px; text-align:center; border-radius:9px; background:#f5f5f1; color:#899080; font-size:10px; font-weight:750; }
+.today .day-counter { background:var(--accent-light); color:#738866; }
+.task-list { list-style:none; padding:0; margin:0; flex:1; }
+.task-item { display:flex; align-items:flex-start; gap:9px; padding:8px 0; min-width:0; }
+.task-check { flex:none; margin-top:1px; height:18px; width:18px; appearance:none; border-radius:6px; border:1.5px solid #cbd0c4; background:white; display:grid; place-items:center; }
+.task-check:checked { background:var(--accent); border-color:var(--accent); }
+.task-check:checked::after { content:'✓'; font-size:12px; font-weight:900; color:white; }
+.task-text { flex:1; min-width:0; overflow-wrap:anywhere; font-size:13px; line-height:1.55; color:#50524b; cursor:pointer; }
+.task-item.completed .task-text { color:#acada7; text-decoration:line-through; text-decoration-thickness:1.4px; text-decoration-color:#a5aaa0; }
+.delete-task { border:0; background:transparent; color:#c4c1ba; font-size:18px; line-height:1; padding:0 2px; opacity:0; flex:none; }
+.task-item:hover .delete-task,.delete-task:focus-visible { opacity:1; }
+.delete-task:hover { color:#bb7770; }
+.add-form { display:flex; align-items:center; gap:7px; padding:11px 0 0; margin-top:11px; border-top:1px solid #f1f0ec; }
+.add-plus { font-size:19px; color:#a0ab95; font-weight:400; }
+.add-input { min-width:0; width:100%; flex:1; outline:none; border:0; background:transparent; color:var(--ink); padding:7px 0; font-size:12px; }
+.add-input::placeholder { color:#b5b5ad; }
+.add-submit { font-size:11px; color:#768b6a; background:var(--accent-light); border:0; border-radius:8px; padding:7px 9px; font-weight:700; }
+.add-submit:hover { background:#e0e8d8; }
+.footnote { text-align:center; margin:29px 0 54px; color:#a3a29a; font-size:12px; }
+.footnote span { margin-right:5px; font-size:15px; }
+footer { margin-top:auto; padding:18px 0 4px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:10px; letter-spacing:.09em; color:#a2a199; }
+.save-dot { color:#a6b69a; margin-left:3px; }
+.confirm-dialog { width:min(400px,calc(100vw - 40px)); border:1px solid var(--line); border-radius:18px; padding:26px; box-shadow:0 20px 70px #23281f33; }
+.confirm-dialog::backdrop { background:#1c251f77; }
+.confirm-dialog h2 { font-size:19px; margin:0 0 12px; }
+.confirm-dialog p { color:#777970; font-size:13px; line-height:1.6; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:9px; margin-top:24px; }
+.danger-button { background:#b98077; color:#fff; border:0; border-radius:12px; padding:10px 14px; font-size:12px; font-weight:700; }
+@media(min-width:1280px) { .weekly-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } .day-card { min-height:290px; } }
+@media(min-width:1550px) { .weekly-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media(max-width:840px) { .weekly-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .intro { margin-top:44px; } }
+@media(max-width:490px) { .app-shell { padding:19px 14px; } .brand { font-size:11px; } .brand-mark { width:29px;height:29px; } .header-actions { gap:5px; } .quiet-button { padding:9px 10px; font-size:11px; } .intro { margin-top:34px; gap:24px; } .date-controls { width:100%; justify-content:space-between; } .weekly-grid { grid-template-columns:1fr; gap:11px; } .day-card { min-height:200px; } .delete-task { opacity:1; } .footnote { margin-bottom:30px; } }
+@media(hover:none) { .delete-task { opacity:1; } }
+
+.time-section{border-top:1px solid #e9ebe4;padding:11px 0 7px;min-height:94px}
+.time-heading{font-size:10px;letter-spacing:.8px;font-weight:800;color:#8b9b80;margin-bottom:6px}
+.time-heading small{font-size:10px;letter-spacing:0;font-weight:500;color:#a6a8a0;margin-left:5px}
+.time-list{list-style:none;margin:0;padding:0;min-height:24px}
+.time-add{display:flex;gap:5px;align-items:center;margin-top:6px}
+.time-add input{min-width:0;flex:1;border:1px solid #eceee7;border-radius:7px;padding:7px;font:inherit;font-size:12px;background:#fafbf8;color:#444}
+.time-add button{border:0;border-radius:7px;background:#edf1e8;color:#607655;padding:7px 9px;font-size:11px;font-weight:700}
+.time-add button:hover{background:#dce7d5}.time-add input:focus{outline:2px solid #9caf91;outline-offset:1px}.time-add button{cursor:pointer;min-width:44px}.task-check{width:17px;height:17px}.delete-task{cursor:pointer}
+.day-card{min-height:410px}.day-card.memo{min-height:410px}.memo-section{padding-top:14px}.memo-section .time-list{min-height:260px}.task-item{display:flex;align-items:flex-start;gap:8px}.task-text{flex:1;cursor:pointer;overflow-wrap:anywhere}.task-check{flex-shrink:0;cursor:pointer;accent-color:#91a783;margin-top:2px}.task-item.completed .task-text{text-decoration:line-through;color:#a2a59d}
+.task-item{padding:5px 0}
+@media(max-width:490px){.day-card{min-height:410px}.day-card.memo{min-height:410px}.memo-section{padding-top:14px}.memo-section .time-list{min-height:260px}.task-item{display:flex;align-items:flex-start;gap:8px}.task-text{flex:1;cursor:pointer;overflow-wrap:anywhere}.task-check{flex-shrink:0;cursor:pointer;accent-color:#91a783;margin-top:2px}.task-item.completed .task-text{text-decoration:line-through;color:#a2a59d}}
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span><span>MY WEEKLY</span></div>
+      <div class="header-actions">
+        <button class="quiet-button" id="exportButton" type="button">백업 저장</button>
+        <button class="quiet-button" id="importButton" type="button">백업 불러오기</button>
+        <input id="importFile" type="file" accept=".json,application/json" hidden />
+        <button class="quiet-button today-button" id="todayButton" type="button">이번 주</button>
+        <button class="quiet-button" id="clearButton" type="button" title="현재 주의 완료한 할 일 정리">완료 항목 정리</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="intro">
+        <div>
+          <p class="eyebrow">A LITTLE PROGRESS EVERY DAY</p>
+          <h1>My Weekly Planner<span class="title-dot">.</span></h1>
+          <p class="subtitle">각 시간대에 할 일을 입력하고 ‘추가’를 누르세요. 완료하면 체크박스를 클릭하세요.</p>
+        </div>
+        <div class="date-controls" aria-label="주간 이동">
+          <button id="previousWeek" class="nav-button" type="button" aria-label="이전 주">‹</button>
+          <div class="week-label" id="weekLabel" aria-live="polite"></div>
+          <button id="nextWeek" class="nav-button" type="button" aria-label="다음 주">›</button>
+        </div>
+      </div>
+
+      <div class="progress-area">
+        <div class="progress-heading"><span>WEEKLY PROGRESS</span><strong id="progressText">0 / 0 done</strong></div>
+        <div class="progress-track" role="progressbar" aria-label="이번 주 할 일 완료율" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <section class="weekly-grid" id="weeklyGrid" aria-label="요일별 플래너"></section>
+      <div class="footnote"><span>☁</span> 작은 체크 하나가 모여 좋은 한 주가 돼요.</div>
+    </main>
+    <footer>MY WEEKLY · Just for you <span>이 브라우저에 자동 저장됨 <span class="save-dot" aria-hidden="true">●</span></span></footer>
+  </div>
+  <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="dialogTitle">
+    <h2 id="dialogTitle">완료한 할 일을 정리할까요?</h2>
+    <p>현재 보고 있는 주의 체크된 할 일만 삭제됩니다. 삭제 후에는 되돌릴 수 없어요.</p>
+    <div class="dialog-actions"><button id="cancelClear" type="button" class="quiet-button">취소</button><button id="confirmClear" type="button" class="danger-button">정리하기</button></div>
+  </dialog>
+  <script>(() => {
+  'use strict';
+  const STORAGE_KEY = 'my-weekly-planner-v1';
+  const DAY_NAMES = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일', '메모'];
+  const grid = document.getElementById('weeklyGrid');
+  const weekLabel = document.getElementById('weekLabel');
+  const progressText = document.getElementById('progressText');
+  const progressFill = document.getElementById('progressFill');
+  const progressTrack = document.getElementById('progressTrack');
+  const dialog = document.getElementById('confirmDialog');
+  const pad = x => String(x).padStart(2, '0');
+  const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const startOfWeek = d => { const v = new Date(d.getFullYear(),d.getMonth(),d.getDate(),12); v.setDate(v.getDate() - (v.getDay()+6)%7); return v; };
+  const dayAfter = (date, count) => { const d = new Date(date); d.setDate(d.getDate()+count); return d; };
+  let monday = startOfWeek(new Date());
+  let data = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (saved && typeof saved === 'object' && !Array.isArray(saved)) data = saved;
+  } catch (err) { console.warn('저장된 데이터를 읽을 수 없습니다.', err); }
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (err) { console.warn('저장에 실패했습니다.',err); } }
+  function weekKey() { return dateKey(monday); }
+  function getWeek() {
+    const key = weekKey();
+    if (!data[key] || typeof data[key] !== 'object') data[key] = {};
+    for (let index = 0; index < 8; index++) {
+      if (!Array.isArray(data[key][index])) data[key][index] = [];
+    }
+    return data[key];
+  }
+  function makeId() { return (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+  function render() {
+    const week = getWeek();
+    const sunday = dayAfter(monday, 6);
+    const fmt = d => `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+    weekLabel.textContent = `${fmt(monday)} – ${fmt(sunday)}`;
+    grid.replaceChildren();
+    const today = dateKey(new Date());
+    DAY_NAMES.forEach((name, index) => {
+      const isMemo = index === 7;
+      const date = dayAfter(monday,index);
+      const isToday = !isMemo && dateKey(date) === today;
+      const tasks = week[index];
+      const article = document.createElement('article');
+      article.className = `day-card${isMemo ? ' memo' : ''}${isToday ? ' today' : ''}`;
+      const header = document.createElement('div'); header.className='card-header';
+      const title = document.createElement('div'); title.className='card-title';
+      const mainTitle = document.createElement('span'); mainTitle.className='day-name'; mainTitle.textContent = name;
+      const subTitle = document.createElement('span'); subTitle.className='day-date';
+      subTitle.textContent = isMemo ? '잊지 말아야 할 것들 ✎' : `${date.getMonth()+1}월 ${date.getDate()}일${isToday ? ' · TODAY' : ''}`;
+      title.append(mainTitle, subTitle);
+      const counter=document.createElement('span'); counter.className='day-counter'; counter.textContent=`${tasks.filter(t=>t.done).length}/${tasks.length}`;
+      header.append(title,counter); article.append(header);
+      const slots=[
+        {key:'morning',name:'06:00 – 12:00',hint:'오전'},
+        {key:'afternoon',name:'12:00 – 18:00',hint:'오후'},
+        {key:'evening',name:'18:00 – 00:00',hint:'저녁'}
+      ];
+      if(isMemo){
+        const section=document.createElement('section');section.className='memo-section';
+        const list=document.createElement('ul');list.className='time-list';
+        tasks.forEach(task=>{
+          if(!task || typeof task.text!=='string')return;
+          const item=document.createElement('li');item.className='task-item'+(task.done?' completed':'');
+          const check=document.createElement('input');check.type='checkbox';check.className='task-check';check.checked=!!task.done;
+          check.setAttribute('aria-label',task.text+' 완료');
+          check.addEventListener('change',()=>{task.done=check.checked;save();render();});
+          const label=document.createElement('span');label.className='task-text';label.textContent=task.text;
+          label.addEventListener('click',()=>{task.done=!task.done;save();render();});
+          const del=document.createElement('button');del.type='button';del.className='delete-task';del.textContent='×';
+          del.setAttribute('aria-label','메모 삭제');
+          del.addEventListener('click',()=>{week[index]=week[index].filter(t=>t!==task);save();render();});
+          item.append(check,label,del);list.append(item);
+        });
+        section.append(list);
+        const form=document.createElement('form');form.className='time-add';
+        const input=document.createElement('input');input.type='text';input.maxLength=240;input.placeholder='＋ 메모 추가하기';
+        const button=document.createElement('button');button.type='submit';button.textContent='추가';
+        form.append(input,button);
+        form.addEventListener('submit',e=>{
+          e.preventDefault();const value=input.value.trim();if(!value)return;
+          week[index].push({id:makeId(),text:value,done:false});
+          save();render();
+          const next=grid.children[index].querySelector('.memo-section input[type=text]');if(next)next.focus();
+        });
+        section.append(form);article.append(section);
+      } else slots.forEach(slot=>{
+        const section=document.createElement('section');section.className='time-section';
+        const heading=document.createElement('div');heading.className='time-heading';
+        heading.textContent=slot.name;
+        const hint=document.createElement('small');hint.textContent=slot.hint;heading.append(hint);section.append(heading);
+        const list=document.createElement('ul');list.className='time-list';
+        tasks.filter(t=>(t.slot||'morning')===slot.key).forEach(task=>{
+          if(!task || typeof task.text!=='string')return;
+          const item=document.createElement('li');item.className=`task-item${task.done?' completed':''}`;
+          const check=document.createElement('input');check.className='task-check';check.type='checkbox';check.checked=!!task.done;
+          check.setAttribute('aria-label',`${task.text} 완료 여부`);
+          const label=document.createElement('span');label.className='task-text';label.textContent=task.text;
+          check.addEventListener('change',()=>{task.done=check.checked;save();render();});label.addEventListener('click',()=>{task.done=!task.done;save();render();});
+          const del=document.createElement('button');del.type='button';del.className='delete-task';del.textContent='×';del.title='삭제';
+          del.addEventListener('click',()=>{week[index]=tasks.filter(t=>t!==task);save();render();});
+          item.append(check,label,del);list.append(item);
+        });
+        section.append(list);
+        const form=document.createElement('form');form.className='time-add';
+        const input=document.createElement('input');input.type='text';input.maxLength=240;
+        input.placeholder=isMemo?'메모 추가...':'＋ 할 일 추가...';
+        input.setAttribute('aria-label',`${name} ${slot.name} 할 일`);
+        const submit=document.createElement('button');submit.type='submit';submit.textContent='추가';
+        form.append(input,submit);
+        form.addEventListener('submit',event=>{
+          event.preventDefault();const value=input.value.trim();if(!value)return;
+          week[index].push({id:makeId(),text:value,done:false,slot:slot.key});
+          save();render();
+          const next=grid.children[index].querySelectorAll('.time-add input')[slots.indexOf(slot)];
+          if(next)next.focus();
+        });
+        section.append(form);article.append(section);
+      });
+      grid.append(article);
+    });
+    updateProgress(week);
+  }
+  function updateProgress(week) {
+    const tasks=Array.from({length:7},(_,i)=>week[i]).flat().filter(t=>t && typeof t.text==='string');
+    const done=tasks.filter(t=>t.done).length;
+    const percentage=tasks.length ? Math.round(done/tasks.length*100) : 0;
+    progressText.textContent=`${done} / ${tasks.length} done · ${percentage}%`;
+    progressFill.style.width=`${percentage}%`;
+    progressTrack.setAttribute('aria-valuenow',String(percentage));
+  }
+  document.getElementById('exportButton').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({ format: 'my-weekly-planner', version: 1, weeks: data }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `my-weekly-backup-${dateKey(new Date())}.json`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  const importFile = document.getElementById('importFile');
+  document.getElementById('importButton').addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', async () => {
+    const file = importFile.files?.[0];
+    if (!file) return;
+    try {
+      const backup = JSON.parse(await file.text());
+      if (backup?.format !== 'my-weekly-planner' || backup.version !== 1 || !backup.weeks || typeof backup.weeks !== 'object' || Array.isArray(backup.weeks)) throw new Error('지원하지 않는 백업 파일');
+      const restored = {};
+      for (const [date, week] of Object.entries(backup.weeks)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !week || typeof week !== 'object') continue;
+        restored[date] = {};
+        for (let i=0; i<8; i++) {
+          const items = Array.isArray(week[i]) ? week[i] : [];
+          restored[date][i] = items.filter(x => x && typeof x.text === 'string').map(x => ({ id: makeId(), text: x.text.slice(0,240), done: !!x.done, slot: ['morning','afternoon','evening'].includes(x.slot) ? x.slot : 'morning' }));
+        }
+      }
+      if (!window.confirm('현재 저장된 일정이 백업 파일의 내용으로 교체됩니다. 계속할까요?')) return;
+      data = restored; save(); render();
+      window.alert('백업을 불러왔어요.');
+    } catch (err) { window.alert('백업 파일을 읽지 못했어요. 이 앱에서 저장한 JSON 파일인지 확인해 주세요.'); }
+    finally { importFile.value = ''; }
+  });
+  document.getElementById('previousWeek').addEventListener('click',()=>{monday=dayAfter(monday,-7);render();});
+  document.getElementById('nextWeek').addEventListener('click',()=>{monday=dayAfter(monday,7);render();});
+  document.getElementById('todayButton').addEventListener('click',()=>{monday=startOfWeek(new Date());render();});
+  document.getElementById('clearButton').addEventListener('click',()=>{if(typeof dialog.showModal==='function')dialog.showModal();else if(window.confirm('완료한 항목을 삭제할까요?'))clearDone();});
+  document.getElementById('cancelClear').addEventListener('click',()=>dialog.close());
+  document.getElementById('confirmClear').addEventListener('click',()=>{clearDone();dialog.close();});
+  function clearDone() {const week=getWeek();for(let i=0;i<8;i++) week[i]=week[i].filter(t=>!t.done);save();render();}
+  render();
+})();
+</script>
+</body>
+</html>
