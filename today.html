@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 할 일 · My Weekly</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;color:#39443b;background:transparent}
+*{box-sizing:border-box}body{margin:0;padding:14px;background:transparent}
+main{background:#fffdf9;border:1px solid #e2e9df;border-radius:19px;box-shadow:0 8px 28px #354d381b;padding:20px;max-width:390px;margin:auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eyebrow{font-size:11px;letter-spacing:1.7px;font-weight:800;color:#8ba17c}
+a{font-size:12px;color:#58774f;text-decoration:none;font-weight:700}
+h1{font-size:23px;letter-spacing:-1px;margin:12px 0 5px}
+.sub{font-size:12px;color:#929b8d;margin-bottom:15px}
+.progress{height:6px;background:#edf1e9;border-radius:10px;overflow:hidden;margin-bottom:18px}
+#fill{height:100%;background:#92aa84;width:0;transition:width .2s}
+section{border-top:1px solid #e7eae3;padding:13px 0 10px}
+h2{font-size:12px;letter-spacing:.3px;color:#718765;margin:0 0 9px}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;line-height:1.5}
+li input{margin-top:3px;accent-color:#87a47b;cursor:pointer}
+li span{flex:1;cursor:pointer;overflow-wrap:anywhere}
+li.done span{text-decoration:line-through;color:#a4aaa0}
+li button{border:0;background:transparent;color:#aaa;font-size:18px;cursor:pointer}
+form{display:flex;gap:6px;margin-top:8px}
+form input{min-width:0;flex:1;background:#f8faf6;border:1px solid #e3e9df;border-radius:8px;padding:9px;font-size:12px}
+form button{border:0;border-radius:8px;background:#e8f0e3;color:#5b7851;font-weight:800;padding:8px 11px;cursor:pointer}
+.empty{color:#b0b6ac;font-size:12px;padding:4px 0}
+footer{font-size:11px;color:#9ba399;margin-top:8px;text-align:center}
+</style></head>
+<body><main>
+<div class="top"><span class="eyebrow">MY DAILY PLANNER</span><a href="./index.html" target="_blank" rel="noopener">전체 주간 보기 ↗</a></div>
+<h1 id="title"></h1><div class="sub" id="summary"></div>
+<div class="progress"><div id="fill"></div></div><div id="slots"></div>
+<footer>같은 사이트를 Chrome에서 열면 일정이 공유돼요.</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const KEY='my-weekly-planner-v1';
+const SLOT=[['morning','06:00 – 12:00'],['afternoon','12:00 – 18:00'],['evening','18:00 – 00:00']];
+const DAYS=['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+const pad=n=>String(n).padStart(2,'0');
+const dateKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const mondayOf=d=>{let x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-(x.getDay()+6)%7);return x;};
+const newId=()=>globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random()}`;
+let todayKey='';
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch{return {};}}
+function save(data){try{localStorage.setItem(KEY,JSON.stringify(data));return true;}catch{alert('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요.');return false;}}
+function render(){
+ const now=new Date(),key=dateKey(now),weekKey=dateKey(mondayOf(now)),dayIndex=(now.getDay()+6)%7;
+ todayKey=key;
+ const data=load();
+ const week=data[weekKey]||{},tasks=Array.isArray(week[dayIndex])?week[dayIndex]:[];
+ document.getElementById('title').textContent=`${now.getMonth()+1}월 ${now.getDate()}일 ${DAYS[now.getDay()]}`;
+ const done=tasks.filter(t=>t.done).length;
+ document.getElementById('summary').textContent=`오늘 할 일 ${tasks.length}개 · 완료 ${done}개`;
+ document.getElementById('fill').style.width=(tasks.length?100*done/tasks.length:0)+'%';
+ const root=document.getElementById('slots');root.replaceChildren();
+ for(const [slot,label] of SLOT){
+  const section=document.createElement('section'),heading=document.createElement('h2');
+  heading.textContent=label;section.append(heading);
+  const ul=document.createElement('ul');
+  const filtered=tasks.filter(t=>t&&typeof t.text==='string'&&(t.slot||'morning')===slot);
+  if(!filtered.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='아직 등록된 할 일이 없어요';ul.append(empty);}
+  for(const task of filtered){
+   const li=document.createElement('li');if(task.done)li.className='done';
+   const check=document.createElement('input');check.type='checkbox';check.checked=!!task.done;
+   const span=document.createElement('span');span.textContent=task.text;
+   const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='삭제';
+   check.addEventListener('change',()=>mutate(list=>{const target=list.find(x=>x.id===task.id)||list.find(x=>x.text===task.text&&x.slot===task.slot);if(target)target.done=check.checked;}));
+   span.addEventListener('click',()=>mutate(list=>{const target=list.find(x=>x.id===task.id)||list.find(x=>x.text===task.text&&x.slot===task.slot);if(target)target.done=!target.done;}));
+   remove.addEventListener('click',()=>mutate(list=>{let i=list.findIndex(x=>x.id===task.id);if(i<0)i=list.findIndex(x=>x.text===task.text&&x.slot===task.slot);if(i>=0)list.splice(i,1);}));
+   li.append(check,span,remove);ul.append(li);
+  }
+  section.append(ul);
+  const form=document.createElement('form'),input=document.createElement('input'),button=document.createElement('button');
+  input.type='text';input.maxLength=240;input.placeholder='＋ 할 일 추가';input.setAttribute('aria-label',label+' 할 일');
+  button.type='submit';button.textContent='추가';
+  form.append(input,button);
+  form.addEventListener('submit',e=>{e.preventDefault();const value=input.value.trim();if(!value)return;mutate(list=>list.push({id:newId(),text:value,done:false,slot}));});
+  section.append(form);root.append(section);
+ }
+}
+function mutate(fn){
+ const data=load(),wk=dateKey(mondayOf(new Date())),idx=(new Date().getDay()+6)%7;
+ if(!data[wk])data[wk]=Array.from({length:8},()=>[]);
+ if(!Array.isArray(data[wk][idx]))data[wk][idx]=[];
+ fn(data[wk][idx]);if(save(data))render();
+}
+window.addEventListener('storage',e=>{if(e.key===KEY)render();});
+window.addEventListener('focus',render);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
+setInterval(()=>{if(todayKey!==dateKey(new Date()))render();},30000);
+render();
+})();
+</script></body></html>
